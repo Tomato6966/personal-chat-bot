@@ -48,7 +48,7 @@ Description=Personal Chat Bot
 After=network.target
 
 [Service]
-ExecStart=cd /home/personal-chat-bot && bun run server.ts
+ExecStart=cd /home/personal-chat-bot && bun run start
 Restart=always
 User=root
 Group=root

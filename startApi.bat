@@ -1,1 +1,1 @@
-bun run server.ts
+bun run server/index.ts

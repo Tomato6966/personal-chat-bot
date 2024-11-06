@@ -1,4 +1,4 @@
-import React, { ReactNode, useReducer, useRef } from "react";
+import React, { useRef } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -26,16 +26,18 @@ const CopyButton = ({ text }: { text: string }) => {
     );
 };
 
-const MarkdownWithCopyButton = ({ entry }: { entry: ReactNode }) => {
+const MarkdownWithCopyButton = ({ entry }: { entry: string | null }) => {
     return (
         <ReactMarkdown
             components={{
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 code({ node, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '');
                     return match ? (
                         <div className="relative">
                             <CopyButton text={String(children).replace(/\n$/, '')} />
                             <SyntaxHighlighter
+                                // @ts-expect-error no overload matching the call
                                 style={oneDark}
                                 language={match[1]}
                                 PreTag="div"

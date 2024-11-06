@@ -1,4 +1,4 @@
-import type { APIS } from "../../../server";
+import type { APIS } from "../../../server/Types";
 
 export const getModels = async (api:APIS) => {
     const response = await fetch('/api/models?api=' + api);

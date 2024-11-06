@@ -1,5 +1,6 @@
 {
     "temperature": 0.7,
     "stream": true,
-    "maxHistory": 20
+    "maxHistory": 20,
+    "default_api": "ollama"
 }

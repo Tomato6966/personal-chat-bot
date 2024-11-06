@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getModels } from "../../handlers/getModels";
 
-import type { APIS } from "../../../../server";
+import type { APIS } from "../../../../server/Types";
 
 export const SelectModels = ({ api, setModelId, modelId }: { modelId:string, api: APIS, setModelId: (modelId: string) => void }) => {
     useQueryClient();

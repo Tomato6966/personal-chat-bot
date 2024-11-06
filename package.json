@@ -1,14 +1,13 @@
 {
   "dependencies": {
-    "@types/express": "^5.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "groq-sdk": "^0.7.0",
     "ollama": "^0.5.9"
   },
   "scripts": {
-    "start": "bun run server.ts",
-    "start:watch": "bun --watch run server.ts",
+    "start": "bun run server/index.ts",
+    "start:watch": "bun --watch run server/index.ts",
     "build:client": "cd client && bun run build",
     "build:client:watch": "cd client && bun run build:watch"
   },
@@ -16,7 +15,9 @@
   "version": "1.0.0",
   "description": "A personal llm-based chat bot, very simple, but with a rest api",
   "main": "server.ts",
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/express": "^5.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Tomato6966/personal-chat-bot.git"

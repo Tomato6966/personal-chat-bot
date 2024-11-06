@@ -1,8 +1,8 @@
 import "./App.css";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import defaults from "../../defaults.json";
 import { ChatEntry } from "./components/ChatEntry";
@@ -10,9 +10,8 @@ import { SelectModels } from "./components/Selects/Model";
 import { SelectPrompts } from "./components/Selects/Prompts";
 import { Streaming } from "./components/Selects/Streaming";
 import { Temperature } from "./components/Selects/Temperature";
-import { getModels } from "./handlers/getModels";
 
-import type { APIS } from "../../server";
+import type { APIS } from "../../server/Types";
 const queryClient = new QueryClient()
 
 function App() {
