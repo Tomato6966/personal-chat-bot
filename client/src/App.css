@@ -1,0 +1,387 @@
+body {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+.temperature {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    border: 0.5px solid #ffffff1c!important;
+    padding: 14px 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.temperature > div {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.toggle {
+    width: 50px!important;
+    height: 50px!important;
+    background-color: #262e33;
+    border-radius: 10% / 50%;
+    color: white;
+    position: absolute!important;
+    top: 20px!important;
+    left: 20px!important;
+    cursor: pointer!important;
+}
+.toggle:hover, .toggle:focus {
+    background-color: #005f9e;
+}
+
+.App {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+    gap: 20px;
+    transition: margin-left 0.3s ease;
+}
+.relative {
+    position: relative;
+}
+.copytoclipboard {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #2d2d2d;
+    color: #d4d4d4;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+.copytoclipboard:hover {
+    background-color: #616161;
+}
+.copytoclipboard.usercopy {
+    top: 8px;
+    right: unset!important;
+    left: 50px!important;
+    padding: 4px;
+    height: 39px;
+}
+
+h1 {
+    color: #dcdcdc;
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+.inputs {
+    padding: 20px;
+    width: 25%;
+}
+
+.outputs {
+    padding: 20px;
+    flex-grow: 1;
+}
+
+.inputs {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    gap: 20px 10px;
+    border-right: 1px solid #333;
+    height: calc(100dvh - 20px - 20px);
+    background-color: #00000044;
+}
+
+.inputs.collapsed {
+    width: 70px;
+    padding: 10px;
+}
+
+.inputs h1 {
+    white-space: nowrap;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.inputs.collapsed h1 {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    margin: 0;
+    padding: 0;
+}
+.inputs > * {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px 10px;
+}
+.inputs > * > input,select {
+    flex-grow: 1;
+}
+
+input[type="number"] {
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background-color: #2d2d2d;
+    color: #d4d4d4;
+    width: 100%;
+    font-size: 16px;
+}
+
+input[type="number"]:focus {
+    border-color: #007acc;
+    background-color: #474747;
+    outline: none;
+}
+
+input[type="number"][disabled] {
+    background-color: #2d2d2d;
+    cursor: not-allowed;
+}
+
+.extras {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+}
+.extras > label {
+    border: 0.5px solid #ffffff1c;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    height: 40px;
+}
+.checkbox-wrapper .checkbox {
+    appearance: none;
+    background-color: #dfe1e4;
+    border-radius: 72px;
+    border-style: none;
+    flex-shrink: 0;
+    height: 20px;
+    margin: 0;
+    position: relative;
+    width: 30px;
+}
+
+.checkbox-wrapper .checkbox::before {
+    bottom: -6px;
+    content: "";
+    left: -6px;
+    position: absolute;
+    right: -6px;
+    top: -6px;
+}
+
+.checkbox-wrapper .checkbox,
+.checkbox-wrapper .checkbox::after {
+    transition: all 100ms ease-out;
+}
+
+.checkbox-wrapper .checkbox::after {
+    background-color: #fff;
+    border-radius: 50%;
+    content: "";
+    height: 14px;
+    left: 3px;
+    position: absolute;
+    top: 3px;
+    width: 14px;
+}
+
+.checkbox-wrapper input[type=checkbox] {
+    cursor: default;
+}
+
+.checkbox-wrapper .checkbox:hover {
+    background-color: #c9cbcd;
+    transition-duration: 0s;
+}
+
+.checkbox-wrapper .checkbox:checked {
+    background-color: #6e79d6;
+}
+
+.checkbox-wrapper .checkbox:checked::after {
+    background-color: #fff;
+    left: 13px;
+}
+
+.checkbox-wrapper :focus:not(.focus-visible) {
+    outline: 0;
+}
+
+.checkbox-wrapper .checkbox:checked:hover {
+    background-color: #535db3;
+}
+
+.select-prompt > select {
+    width: 70%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #1c3546;
+    color: white;
+    cursor: pointer;
+}
+.select-prompt > select[data-loading="yes"] {
+    background-color: #1c3546;
+    animation: pulseselect 1s infinite alternate;
+}
+
+.select-prompt > select:hover, select:focus {
+    background-color: #005f9e;
+}
+.select-prompt > button {
+    width: 20%;
+}
+
+textarea {
+    resize: vertical;
+
+}
+textarea, input[type="text"] {
+    padding: 10px;
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background-color: #2d2d2d;
+    color: #d4d4d4;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007acc;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover, button:focus {
+    background-color: #005f9e;
+}
+
+input[disabled] {
+    cursor: not-allowed;
+}
+button[disabled] {
+    background-color: #2d2d2d;
+    cursor: not-allowed;
+}
+
+.chat-history {
+    max-height: 87dvh;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #252526;
+    border-radius: 8px;
+    margin-top: 20px;
+    scroll-behavior: smooth;
+    transition: all 0.2s ease;
+}
+.chat-history.smaller {
+    max-height: 10dvh;
+}
+
+.chat-entry {
+    margin: 10px 0;
+    border-radius: 10px;
+    padding: 8px;
+    border: 1px dashed #333;
+    transition: all 0.2s ease;
+}
+.chat-entry[data-role="user"].expanded {
+    max-height: none!important;
+    height: auto!important;
+}
+
+.expand-button > svg {
+    width: 20px!important;
+    height: 20px!important;
+}
+.expand-button {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    height: 39px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #2c2c2c!important;
+}
+.expand-button:hover, .expand-button:focus {
+    background-color: #616161!important;
+}
+
+.chat-entry[data-role="user"] {
+    max-height: 100px!important;
+    border: 1px dashed #2d3155!important;
+    font-style: italic;
+    color: #ffffff67;
+    overflow: auto;
+    text-overflow: clip;
+    text-align: right;
+}
+
+.message-input {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    bottom: 0;
+}
+.message-input > input {
+    flex-grow: 1;
+}
+
+.message-input > input[data-loading="yes"] {
+    background-color: #2d2d2d;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #2d2d2d;
+  }
+  50% {
+    background-color: #474747;
+  }
+  100% {
+    background-color: #2d2d2d;
+  }
+}
+@keyframes pulseselect {
+  0% {
+    background-color: #1c3546;
+  }
+  50% {
+    background-color: #264d66;
+  }
+  100% {
+    background-color: #1c3546;
+  }
+}
+
+code {
+    background-color: #333;
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: #dcdcdc;
+}
+
+pre {
+    background-color: #1e1e1e;
+    padding: 10px;
+    border-radius: 8px;
+    overflow: auto;
+    color: #c5c5c5;
+}
