@@ -14,7 +14,14 @@ That way i do not rely on chatgpt or claude for simple tasks anymore.
 - Sick modern UI, for ultimate interactivity.
 - Easy to host & extend
 - Custom system prompts (instructions) in `prompts.json` declare able
+- Supports multiple api's:
+    - groq (https://groq.com)
+    - ollama (https://ollama.ai)
+    - ... *easy to add more, but i don't need more...*
 
+![PersonalChatBot](https://github.com/user-attachments/assets/40569c1f-0a68-4336-8af7-ad38a15671c6)
+
+![PersonalChatBotExample](https://github.com/user-attachments/assets/856a7ff3-5b8a-4b29-b11b-b5799278fe79)
 
 ## Usage
 
@@ -54,3 +61,7 @@ WantedBy=multi-user.target
 4. Reload the systemd daeomn `sudo systemctl daemon-reload`
 5. Enable the service `sudo systemctl enable personal-chat-bot.service`
 6. Start the service `sudo systemctl start personal-chat-bot.service`
+
+
+Why yet another chatbot?
+- I made many chatbots with llms in the past already, and there are many opensource solutions available already, however this was a fun project and i wanted to include the groq api in particular.
