@@ -12,6 +12,17 @@ export const ollama = new Ollama();
 export const promptsFilePath = join(__dirname, '../prompts.json');
 export const defaults = defaults_imported;
 
+export const centerString = (str: string, width: number) => {
+    const spaces = width - str.length;
+    const left = Math.floor(spaces / 2);
+    const right = spaces - left;
+    return `${" ".repeat(left)}${str}${" ".repeat(right)}`;
+}
+
+export const getDateFormatted = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}.${d.getMilliseconds().toFixed(4)}`;
+}
 
 export const fetchModels = async (api:APIS) => {
     if(cachedModels.has(api)) {
