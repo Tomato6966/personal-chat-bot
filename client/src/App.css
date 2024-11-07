@@ -272,14 +272,36 @@ button:hover, button:focus {
     background-color: #005f9e;
 }
 
+button[data-delete] {
+    background-color: #c43700!important;
+}
+
+button[data-delete]:hover, button[data-delete]:focus {
+    background-color: #9e2d00!important;
+}
+button[data-override="yes"] {
+    background-color: #be710b!important;
+}
+
+button[data-override="yes"]:hover, button[data-override="yes"]:focus {
+    background-color: #9e5a00!important;
+}
+
 input[disabled] {
     cursor: not-allowed;
 }
+
 button[disabled] {
     background-color: #2d2d2d;
     cursor: not-allowed;
 }
 
+.buttonSendingLoading {
+    width: 100px;
+    display: flex;
+    justify-self: center;
+    align-items: center;
+}
 .chat-history {
     max-height: 87dvh;
     overflow-y: auto;
@@ -343,7 +365,43 @@ button[disabled] {
     flex-grow: 1;
 }
 
-.message-input > input[data-loading="yes"] {
+.attachment-container {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 10px;
+    bottom: 0;
+    width: 100%;
+}
+.attachment-container > div {
+    position: relative;
+    max-height: 100px;
+    border-radius: 4px;
+    border: 1px dashed #ffffff4b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.attachment-container > div > img {
+    max-height: 100px;
+}
+.attachment-container > div > button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: transparent!important;
+    padding: 4px;
+}
+.attachment-container > div > button:hover, .attachment-container > div > button:focus > svg {
+    scale: 2;
+    transform: translateX(-5px) translateY(+5px)
+}
+
+input[data-loading="yes"], textarea[data-loading="yes"]  {
     background-color: #2d2d2d;
     animation: pulse 1s infinite alternate;
 }

@@ -4,7 +4,7 @@ import { Ollama } from "ollama";
 import { join } from "path";
 
 import defaults_imported from "../../defaults.json";
-import { APIS } from "../Types";
+import { AIMessage, APIS } from "../Types";
 import { cachedModels, chatHistory, prompts } from "./Cache";
 
 export const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -40,10 +40,12 @@ export const fetchModels = async (api:APIS) => {
     return models
 }
 
-export const addHistory = (key: string, content: string, role: "system" | "user" | "assistant") => {
+export const addHistory = (key: string, content: string, role: "system" | "user" | "assistant", images: string[] = []) => {
     const oldHistory = chatHistory.get(key) || [];
 
-    oldHistory.push({ role, content });
+    const data = { role, content } as AIMessage;
+    if(images.length) data.images = images;
+    oldHistory.push(data);
 
     if (oldHistory.length > defaults.maxHistory) oldHistory.splice(defaults.maxHistory, oldHistory.length);
 
