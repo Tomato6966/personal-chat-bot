@@ -4,12 +4,12 @@ import { Ollama } from "ollama";
 import { join } from "path";
 
 import defaults_imported from "../../defaults.json";
-import { AIMessage, APIS } from "../Types";
-import { cachedModels, chatHistory, prompts } from "./Cache";
+import { APIS } from "../Types";
+import { cachedModels, prompts } from "./Cache";
 
 export const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 export const ollama = new Ollama();
-export const promptsFilePath = join(__dirname, '../prompts.json');
+export const promptsFilePath = join(__dirname, '../../prompts.json');
 export const defaults = defaults_imported;
 
 export const centerString = (str: string, width: number) => {
@@ -40,19 +40,6 @@ export const fetchModels = async (api:APIS) => {
     return models
 }
 
-export const addHistory = (key: string, content: string, role: "system" | "user" | "assistant", images: string[] = []) => {
-    const oldHistory = chatHistory.get(key) || [];
-
-    const data = { role, content } as AIMessage;
-    if(images.length) data.images = images;
-    oldHistory.push(data);
-
-    if (oldHistory.length > defaults.maxHistory) oldHistory.splice(defaults.maxHistory, oldHistory.length);
-
-    chatHistory.set(key, oldHistory);
-    return;
-};
-
 export const loadPrompts = () => {
     if (!existsSync(promptsFilePath)) return console.error("tried to load prompts, but fiel doesn't exist");
     const data = readFileSync(promptsFilePath, 'utf-8');
@@ -68,5 +55,6 @@ export const loadPrompts = () => {
 export const savePrompts = () => {
     const data = JSON.stringify(Object.fromEntries(prompts), null, 2);
     writeFileSync(promptsFilePath, data);
+    loadPrompts();
     return;
 };

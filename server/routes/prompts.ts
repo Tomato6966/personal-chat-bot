@@ -1,9 +1,10 @@
 import { Express } from "express";
 
 import { prompts } from "../Utils/Cache.ts";
-import { savePrompts } from "../Utils/handlers.ts";
+import { loadPrompts, savePrompts } from "../Utils/handlers.ts";
 
 export const promptRoutes = (app: Express) => {
+    loadPrompts();
     // Save a system prompt
     app.post('/api/prompts', (req, res) => {
         const { id, content } = req.body;

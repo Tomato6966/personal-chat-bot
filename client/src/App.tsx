@@ -11,6 +11,7 @@ import { SelectModels } from "./components/Selects/Model";
 import { SelectPrompts } from "./components/Selects/Prompts";
 import { Streaming } from "./components/Selects/Streaming";
 import { Temperature } from "./components/Selects/Temperature";
+import { HistoryMsg } from "./Types";
 
 import type { APIS } from "../../server/Types";
 const queryClient = new QueryClient()
@@ -18,8 +19,7 @@ const queryClient = new QueryClient()
 function App() {
     const [loading, setLoading] = useState(() => false);
     const [promptId, setPromptId] = useState(() => '');
-    const [message, setMessage] = useState(() => '');
-    const [chatHistory, setChatHistory] = useState<{ role: string, content: string }[]>(() => []);
+    const [chatHistory, setChatHistory] = useState<HistoryMsg[]>(() => []);
     const [newPrompt, setNewPrompt] = useState(() => '');
     const [editPrompt, setEditPrompt] = useState(() => '');
     const [isEditing, setIsEditing] = useState(() => false);
@@ -37,7 +37,7 @@ function App() {
         const storedTemperature = localStorage.getItem('temperature');
         return (storedTemperature && JSON.parse(storedTemperature)) ?? defaults.temperature;
     });
-    const [isCollapsed, setIsCollapsed] = useState(() => {
+    const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
         const storedIsCollapsed = localStorage.getItem('isCollapsed');
         return (storedIsCollapsed && JSON.parse(storedIsCollapsed)) ?? false;
     });
@@ -51,6 +51,23 @@ function App() {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const chatHistoryRef = useRef<HTMLDivElement>(null);
 
+    const handleFileAdd = async (files:File | File[]) => {
+        const loadedImages = await Promise.all(
+            (Array.isArray(files) ? files : [files]).map(file => new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = () => {
+                    resolve(reader.result as string);
+                };
+
+                reader.onerror = () => reject(new Error("Error reading file"));
+
+                reader.readAsDataURL(file);
+            }))
+        );
+        // add image
+        setImages(imgs => [...imgs, ...loadedImages].filter((img, i, a) => a.indexOf(img) === i));
+    }
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
             const files = Array.from(event.target.files);
@@ -70,10 +87,61 @@ function App() {
                 }))
             );
 
-            // Assuming setImages is defined to update your component state
+            // Overrides images
             setImages(loadedImages);
         }
     };
+
+
+    const handleDrop = (e: DragEvent) => {
+        e.preventDefault();
+        const files = Array.from(e.dataTransfer?.files || []);
+        const images = Array.from(files || []).filter(item => item.type.includes('image'));
+
+        if(!images.length) return;
+
+        handleFileAdd(files);
+    };
+
+    const handlePaste = (e: ClipboardEvent) => {
+        const items = e.clipboardData?.items;
+        const pastedText = e.clipboardData?.getData?.('text');
+        const images = Array.from(items || []).filter(item => item.type.includes('image'));
+
+        if(!images.length) return;
+
+        if(!textareaRef.current || ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName || "")) {
+            handleFileAdd(images.map(item => item.getAsFile()).filter(v => v !== null));
+            return;
+        }
+
+        e.preventDefault();
+
+        handleFileAdd(images.map(item => item.getAsFile()).filter(v => v !== null));
+
+        textareaRef.current.focus();
+
+        if(pastedText) {
+            textareaRef.current.value = pastedText;
+        }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if(!textareaRef.current || ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName || "")) return;
+        if(e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) return;
+        textareaRef.current.focus();
+    };
+
+    useEffect(() => {
+        document.addEventListener('drop', handleDrop);
+        document.addEventListener('paste', handlePaste);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('drop', handleDrop);
+            document.removeEventListener('paste', handlePaste);
+            document.addEventListener('keydown', handleKeyDown);
+        };
+    }, []);
 
     // Save to localStorage when dependencies change
     useEffect(() => {
@@ -98,60 +166,24 @@ function App() {
             document.getElementById("model-select")?.focus();
             return alert("Pick a model first")
         };
-        if (!message) return;
+        if (!textareaRef.current?.value) return;
 
         if(textareaRef.current) textareaRef.current.style.height = '72px';
         setLoading(true);
-        const userMessage = { role: 'user', content: message };
-        setChatHistory((prev) => [...prev, userMessage]);
+        const userMessage:HistoryMsg = { role: 'user', content: textareaRef.current.value, state: "loading" };
+        const newHistory = [
+            ...chatHistory, userMessage
+        ]
+        setChatHistory(newHistory);
 
         try {
-            /*
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files) {
-            const files = Array.from(event.target.files);
-
-            // Read files and convert them to base64
-            const loadedImages = await Promise.all(
-                files.map(file => new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-
-                    reader.onload = () => {
-                        const base64 = reader.result as string;
-
-                        // Strip off the MIME type prefix to get clean base64
-                        const cleanBase64 = base64
-                            .replace(/^data:image\/(png|jpeg|jpg);base64,/, '')
-                            .trim();
-
-                        // Validate the base64 string
-                        try {
-                            atob(cleanBase64); // Decodes base64 to check if it's valid
-                            resolve(cleanBase64);
-                        } catch (error) {
-                            console.error("Invalid base64 string:", error);
-                            reject(new Error("Invalid base64 string"));
-                        }
-                    };
-
-                    reader.onerror = () => reject(new Error("Error reading file"));
-
-                    reader.readAsDataURL(file);
-                }))
-            );
-
-            // Assuming setImages is defined to update your component state
-            setImages(loadedImages);
-        }
-    };
-            */
             const requestPayload = {
                 images,
                 modelId,
                 api,
                 promptId,
-                message,
+                chatHistory: newHistory
+                    .filter(v => v.state !== "failed").slice(newHistory.length - defaults.maxHistory, newHistory.length),
                 stream: streaming.toString()
             };
 
@@ -167,6 +199,10 @@ function App() {
                 const { status = 500, statusText = "Internal Server Error" } = response || {};
                 let text = "";
                 try { text = response ? await response.text() : ""; } catch { /* */ }
+                setChatHistory((prev) => {
+                    prev[prev.length - 1].state = "failed";
+                    return prev;
+                });
                 setLoading(false);
                 return alert(`Error sending message: ${status} ${statusText} -- ${text}`);
             }
@@ -174,11 +210,8 @@ function App() {
             if (streaming) {
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                const amount = chatHistory.length + 1;
+                const amount = newHistory.length;
                 let acc = "";
-                // Send the initial user message to chat history
-                const userMessage = { role: 'user', content: message };
-                setChatHistory(prevChatHistory => [...prevChatHistory, userMessage]);
 
                 // Function to handle streaming and update chat history
                 let done = false;
@@ -192,6 +225,15 @@ function App() {
 
                         if (chunkUnparsed.includes("[DONE]")) {
                             handleTextareaChange(null);
+                            setChatHistory((prev) => {
+                                if(prev[prev.length - 1]?.role === "assistant") {
+                                    prev[prev.length - 2].state = "success";
+                                    prev[prev.length - 1].state = "success";
+                                } else {
+                                    prev[prev.length - 1].state = "failed";
+                                }
+                                return prev;
+                            });
                             setLoading(false);
                             reader.cancel(); // Stop reading the stream
                             return;
@@ -205,6 +247,7 @@ function App() {
                             const newChatHistory = [...prevChatHistory];
                             newChatHistory[amount] = {
                                 role: 'assistant',
+                                state: "loading",
                                 content: acc
                                     .replaceAll("`` `", "```")
                                     .replaceAll("` ``", "```")
@@ -214,6 +257,15 @@ function App() {
                         });
                     } catch (e) {
                         console.error(e);
+                        setChatHistory((prev) => {
+                            if(prev[prev.length - 1]?.role === "assistant") {
+                                prev[prev.length - 2].state = "success";
+                                prev[prev.length - 1].state = "success";
+                            } else {
+                                prev[prev.length - 1].state = "failed";
+                            }
+                            return prev;
+                        });
                         handleTextareaChange(null);
                         setLoading(false);
                         reader.cancel(); // Stop reading the stream
@@ -222,19 +274,34 @@ function App() {
                 }
             } else {
                 const data = await response.json();
-                const assistantMessage = {
-                    role: 'assistant',
-                    content: data.response
-                        .replaceAll("%%newline%%", "\n")
-                        .replaceAll("%%space%%", " ")
-                };
-                setChatHistory((prev) => [...prev, assistantMessage]);
+                setChatHistory((prev) => {
+                    prev[prev.length - 1].state = "success";
+                    return [
+                        ...prev
+                        , {
+                            role: 'assistant',
+                            state: "success",
+                            content: data.response
+                                .replaceAll("%%newline%%", "\n")
+                                .replaceAll("%%space%%", " ")
+                        }
+                    ]
+                });
                 handleTextareaChange(null);
                 setLoading(false);
             }
         } catch (error) {
             console.error("Error during message sending:", error);
             handleTextareaChange(null);
+            setChatHistory((prev) => {
+                if(prev[prev.length - 1]?.role === "assistant") {
+                    prev[prev.length - 2].state = "success";
+                    prev[prev.length - 1].state = "success";
+                } else {
+                    prev[prev.length - 1].state = "failed";
+                }
+                return prev;
+            });
             setLoading(false);
         }
     };
@@ -270,28 +337,20 @@ function App() {
     };
 
     const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement> | null) => {
-        if(e === null) {
-            setMessage('');
-            if(textareaRef.current) textareaRef.current.value = ''
-        }
-        else setMessage(e.target.value);
-
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-        }
-    };
-
-    // Toggle sidebar collapse
-    const toggleSidebar = () => {
-        setIsCollapsed(!isCollapsed);
+        if(!textareaRef.current) return;
+        if(e === null) textareaRef.current.value = "";
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     };
 
     return (
         <QueryClientProvider client={queryClient}>
             <div className={`App ${isCollapsed ? 'collapsed' : ''}`}>
-                <div className={`inputs ${isCollapsed ? 'collapsed' : ''}`}>
-                    <button className="toggle" onClick={toggleSidebar}>
+                {/* Sidebar */}
+                <nav className={`inputs ${isCollapsed ? 'collapsed' : ''}`}>
+                    <button
+                        className="toggle"
+                        onClick={() => setIsCollapsed(prevCollapsedState => !prevCollapsedState)}>
                         {isCollapsed ? '▶' : '◀'}
                     </button>
                     <h1>Simple personal Chatbot</h1>
@@ -303,7 +362,6 @@ function App() {
                                     value={api}
                                     onChange={(e) => {
                                         setAPI(e.target.value as APIS);
-                                        setIsEditing(false);
                                     }}
                                 >
                                     <option value="groq">Groq</option>
@@ -347,8 +405,10 @@ function App() {
                             </div>
                         </>
                     )}
-                </div>
-                <div className="outputs">
+                </nav>
+
+                {/* output aka main area */}
+                <main className="outputs">
                     <div id="chat-history" ref={chatHistoryRef} className={`chat-history ${isFocused ? "smaller" : ""}`}>
                         {chatHistory.map((entry, index) => (
                             <ChatEntry key={index} entry={entry} index={index} />
@@ -362,7 +422,6 @@ function App() {
                             onBlur={() => setIsFocused(false)}
                             id="user-message"
                             data-loading={loading ? "yes" : "no"}
-                            value={message}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     sendMessage();
@@ -432,7 +491,7 @@ function App() {
                             ))}
                         </div>
                     }
-                </div>
+                </main>
             </div>
         </QueryClientProvider>
     );

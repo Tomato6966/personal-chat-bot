@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
+import { HistoryMsg } from "../Types";
 import MarkdownWithCopyButton from "./Markdown";
 
-export const ChatEntry = ({ entry, index }: { entry: { role: string, content: string }, index: number }) => {
+export const ChatEntry = ({ entry, index }: { entry: HistoryMsg, index: number }) => {
     const [copied, setCopied] = useState<"Copied" | "Copy" | "Failed to Copy">("Copy");
     const [expanded, setExpanded] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -11,7 +12,7 @@ export const ChatEntry = ({ entry, index }: { entry: { role: string, content: st
 
     if(entry.role === "user") {
        return (
-        <div key={index} className={`relative chat-entry ${entry.role} ${expanded ? "expanded" : ""}`} data-role={entry.role}>
+        <div key={index} className={`relative chat-entry ${entry.role} ${expanded ? "expanded" : ""}`} data-role={entry.role} data-state={entry.state}>
             <button className="expand-button" onClick={toggleExpanded}>
                 {
                     expanded

@@ -71,6 +71,7 @@ h1 {
     color: #dcdcdc;
     margin-bottom: 20px;
     text-align: center;
+    text-wrap: wrap;
     width: 100%;
 }
 
@@ -102,12 +103,14 @@ h1 {
 
 .inputs h1 {
     white-space: nowrap;
+    text-wrap: wrap;
     overflow: hidden;
     transition: transform 0.3s ease;
 }
 
 .inputs.collapsed h1 {
     writing-mode: vertical-lr;
+    text-wrap: wrap;
     transform: rotate(180deg);
     margin: 0;
     padding: 0;
@@ -327,6 +330,21 @@ button[disabled] {
     max-height: none!important;
     height: auto!important;
 }
+.chat-entry[data-role="user"] {
+    max-height: 100px!important;
+    border: 1px dashed #2d3155!important;
+    font-style: italic;
+    color: #ffffff67;
+    overflow: auto;
+    text-overflow: clip;
+    text-align: right;
+}
+.chat-entry[data-state="failed"] {
+    border: 1px dashed #c43700!important;
+}
+.chat-entry[data-state="loading"] .expand-button > svg {
+    border: 1px dashed #35362c!important;
+}
 
 .expand-button > svg {
     width: 20px!important;
@@ -343,16 +361,6 @@ button[disabled] {
 }
 .expand-button:hover, .expand-button:focus {
     background-color: #616161!important;
-}
-
-.chat-entry[data-role="user"] {
-    max-height: 100px!important;
-    border: 1px dashed #2d3155!important;
-    font-style: italic;
-    color: #ffffff67;
-    overflow: auto;
-    text-overflow: clip;
-    text-align: right;
 }
 
 .message-input {

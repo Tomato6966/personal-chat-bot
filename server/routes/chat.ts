@@ -2,17 +2,17 @@ import { Express } from "express";
 import { writeFileSync } from "fs";
 
 import { AIMessage, APIS } from "../Types";
-import { cachedModels, chatHistory, prompts } from "../Utils/Cache";
-import { addHistory, defaults, fetchModels, groq, ollama } from "../Utils/handlers";
+import { cachedModels, prompts } from "../Utils/Cache";
+import { defaults, fetchModels, groq, ollama } from "../Utils/handlers";
 
 import type Groq from "groq-sdk";
 
 export const chatRoutes = (app: Express) => {
     // Send a chat message and get a response
     app.post('/api/chat', async (req, res) => {
-        const { images, modelId, promptId, message, temperature, stream, api = "groq" } = req.body as {
+        const { images, modelId, promptId, chatHistory, temperature, stream, api = "groq" } = req.body as {
             promptId: string,
-            message: string,
+            chatHistory: { role: string, content: string, state: "loading" | "success" | "failed" }[],
             images: string[],
             modelId: string,
             api?: APIS;
@@ -20,11 +20,12 @@ export const chatRoutes = (app: Express) => {
             stream?: "true" | "false",
         };
 
-        const historyKey = "chrissy8283"; // add the unique user identifier / chat thread ...
+        const history = chatHistory.slice(chatHistory.length - defaults.maxHistory, chatHistory.length);
 
         if (!cachedModels.has(api)) {
             await fetchModels(api);
         }
+
         const models = cachedModels.get(api);
         if (!models?.includes(modelId)) {
             console.error("COULD NOT FIND MODEL", { modelId, models });
@@ -36,8 +37,6 @@ export const chatRoutes = (app: Express) => {
         const systemMessage = { role: 'system', content: systemContent } as AIMessage;
 
         if(images.length) writeFileSync(process.cwd() + "/test.json", JSON.stringify({ images }));
-
-        addHistory(historyKey, message, "user", images);
 
         const useStream = stream === "true" ? true : stream === "false" ? false : defaults.stream;
         if (useStream) {
@@ -51,7 +50,6 @@ export const chatRoutes = (app: Express) => {
                 try {
                     if (!useStream) {
                         const responseContent = getData(completion);
-                        if (responseContent) addHistory(historyKey, responseContent, "assistant");
                         await res.status(200).json({ response: responseContent });
                         return;
                     }
@@ -64,8 +62,6 @@ export const chatRoutes = (app: Express) => {
                         await res.status(200).write(`data: ${JSON.stringify({ content })}\n\n`);
                     }
 
-                    addHistory(historyKey, bundled.join(""), "assistant");
-
                     await res.status(200).write('data: [DONE]\n\n');
                     await res.status(200).end();
 
@@ -75,29 +71,28 @@ export const chatRoutes = (app: Express) => {
                 }
             }
 
-            const oldHistory = chatHistory.get(historyKey) || [];
 
             switch (api) {
                 default:
                 case "ollama": {
-                    const only1UserRequest = modelId.includes("llava");
-                    const lastUserRequest = oldHistory.reverse().findIndex(v => v.role === "user");
-                    const historyMapped = oldHistory
-                    .filter((v, i) => !only1UserRequest || (only1UserRequest && (v.role !== "user" || i === lastUserRequest)))
-                    .map((v, i) => ({
-                        content: v.content,
-                        images: v.images?.length && oldHistory.length - 1 === i ? v.images.map(img => {
-                            const cleanBase64 = img.replace(/^data:image\/(png|jpeg|jpg);base64,/, '').trim();
-                            try {
-                                atob(cleanBase64)
-                                return cleanBase64;
-                            } catch (error) {
-                                console.error("Invalid base64 string:", error, cleanBase64);
-                                return null;
-                            }
-                        }).filter(v => typeof v === "string") : [],
-                        role: v.role,
-                    }));
+                    const lastUserRequest = history.map(v => v.role).lastIndexOf("user");
+                    const only1UserRequest = modelId.includes("llava") && lastUserRequest > -1;
+                    const historyMapped = history
+                        .filter((v, i) => !only1UserRequest || (only1UserRequest && (v.role !== "user" || i === lastUserRequest)))
+                        .map((v, i) => ({
+                            content: v.content,
+                            images: images?.length && (history.length - 1) === i ? images.map(img => {
+                                const cleanBase64 = img.replace(/^data:image\/(png|jpeg|jpg);base64,/, '').trim();
+                                try {
+                                    atob(cleanBase64)
+                                    return cleanBase64;
+                                } catch (error) {
+                                    console.error("Invalid base64 string:", error, cleanBase64);
+                                    return null;
+                                }
+                            }).filter(v => typeof v === "string") : [],
+                            role: v.role,
+                        }));
                     const completion = await ollama.chat(
                         {
                             model: modelId,
@@ -124,21 +119,21 @@ export const chatRoutes = (app: Express) => {
 
                 case "groq": {
                     const only1UserRequest = modelId.includes("llava");
-                    const lastUserRequest = oldHistory.reverse().findIndex(v => v.role === "user");
-                    const historyMapped = oldHistory
+                    const lastUserRequest = history.reverse().findIndex(v => v.role === "user");
+                    const historyMapped = history
                         .filter((v, i) => !only1UserRequest || (only1UserRequest && (v.role !== "user" || i === lastUserRequest)))
                         .map((v, i) => ({
-                        content: (v.role !== "user" || !v.images?.length || i !== oldHistory.length - 1)
-                        ? v.content : [
+                        content: (v.role === "user" && images?.length && (history.length - 1) !== i)
+                        ? [
                             {
                                 "type": "text",
                                 "text": v.content
                             },
-                            ...v.images.map(base64Url => ({
+                            ...images.map(base64Url => ({
                                 "type": "image_url",
                                 "image_url": { "url": base64Url }
                             }))
-                        ],
+                        ] : v.content,
                         role: v.role,
                     }));
                     writeFileSync(process.cwd() + "/test.json", JSON.stringify({ messages: (systemContent.length ? [systemMessage, ...historyMapped] : [...historyMapped]) as Groq.Chat.ChatCompletionMessageParam[],
