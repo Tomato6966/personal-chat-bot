@@ -299,6 +299,29 @@ button[disabled] {
     cursor: not-allowed;
 }
 
+footer {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+}
+
+footer[data-iscollapsed="yes"] {
+    bottom: 8.5px!important;
+    left: 8.5px!important;
+}
+
+footer > span {
+    font-style: italic;
+}
+
+footer[data-iscollapsed="yes"] > span {
+    display: none;
+}
+
 .buttonSendingLoading {
     width: 100px;
     display: flex;

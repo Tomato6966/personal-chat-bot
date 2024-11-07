@@ -493,6 +493,12 @@ function App() {
                     }
                 </main>
             </div>
+            <footer data-iscollapsed={isCollapsed ? "yes" : "no"}>
+                <a href="https://github.com/Tomato6966/personal-chat-bot" rel="noreferrer" target="_blank">
+                    <img src="https://img.shields.io/github/stars/Tomato6966/personal-chat-bot?style=social" alt="GitHub Repo stars" />
+                </a>
+                <span>Made with ❤️ for fun!</span>
+            </footer>
         </QueryClientProvider>
     );
 }
