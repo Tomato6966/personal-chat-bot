@@ -1,9 +1,8 @@
 import { Express } from "express";
-import { writeFileSync } from "fs";
 
 import { AIMessage, APIS } from "../Types";
 import { cachedModels, prompts } from "../Utils/Cache";
-import { defaults, fetchModels, groq, ollama } from "../Utils/handlers";
+import { defaults, fetchModels, getGroq, ollama } from "../Utils/handlers";
 
 import type Groq from "groq-sdk";
 
@@ -66,6 +65,7 @@ export const chatRoutes = (app: Express) => {
                     return;
                 } catch (error) {
                     console.error('Error fetching completion:', error);
+                    return await res.status(500).send(error?.message || 'EWrrored fetching completion');
                 }
             }
 
@@ -116,6 +116,7 @@ export const chatRoutes = (app: Express) => {
                 // case "openrouter": break;
 
                 case "groq": {
+                    const groq = getGroq();
                     const only1UserRequest = modelId.includes("llava");
                     const lastUserRequest = history.reverse().findIndex(v => v.role === "user");
                     const historyMapped = history
@@ -149,7 +150,7 @@ export const chatRoutes = (app: Express) => {
             }
         } catch (error) {
             console.error('Error fetching completion:', error);
-            res.status(500).json({ error: 'Failed to fetch completion' });
+            res.status(500).send(error?.message || 'Failed to fetch completion');
         }
     });
 }

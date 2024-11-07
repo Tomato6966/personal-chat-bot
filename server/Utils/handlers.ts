@@ -7,7 +7,18 @@ import defaults_imported from "../../defaults.json";
 import { APIS } from "../Types";
 import { cachedModels, prompts } from "./Cache";
 
-export const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const APIKEYS = process.env.GROQ_API_KEY?.split(" ") || [];
+
+const groqs = new Map<string, number>(Array.from({ length: APIKEYS?.length }, (_, i) => ([APIKEYS[i], 0])));
+
+export const getGroq = () => {
+    const vals = Array.from(groqs.entries());
+    const [leastUsedId, leastUsedCalls] = vals.sort((a, b) => a[1] - b[1])[0];
+    if(!leastUsedId) throw new Error("No groq instances available");
+    groqs.set(leastUsedId, leastUsedCalls + 1);
+    return new Groq({ apiKey: leastUsedId });
+}
+
 export const ollama = new Ollama();
 export const promptsFilePath = join(__dirname, '../../prompts.json');
 export const defaults = defaults_imported;
@@ -28,6 +39,7 @@ export const fetchModels = async (api:APIS) => {
     if(cachedModels.has(api)) {
         return cachedModels.get(api);
     }
+    const groq = getGroq();
     let models:string[] = [];
     switch(api) {
         case "groq": models = (await groq.models.list()).data.map(model => model.id); break;
