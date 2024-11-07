@@ -27,21 +27,8 @@ const CopyButton = ({ text }: { text: string }) => {
 };
 
 const MarkdownWithCopyButton = ({ entry }: { entry: string | null }) => {
-    const [copied, setCopied] = useState<"Copied" | "Copy" | "Failed to Copy">("Copy");
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     return (
         <>
-            <CopyToClipboard text={entry || ""} onCopy={(_text, result: boolean) => {
-                if(timeoutRef.current) clearTimeout(timeoutRef.current);
-                timeoutRef.current = setTimeout(() => setCopied(result ? "Copied" : "Failed to Copy"), 3000);
-            }}>
-                <button
-                    className={`copytoclipboard ${copied ? 'copied' : ''} assitantcopy`}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                {copied}
-                </button>
-            </CopyToClipboard>
             <ReactMarkdown
             components={{
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars

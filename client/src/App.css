@@ -33,7 +33,7 @@ body {
     left: 20px!important;
     cursor: pointer!important;
 }
-.toggle:hover, .toggle:focus {
+.toggle:hover {
     background-color: #005f9e;
 }
 
@@ -67,9 +67,6 @@ body {
     height: 39px;
 }
 .copytoclipboard.assitantcopy {
-    top: 8px;
-    right: unset!important;
-    left: 15px!important;
     padding: 4px;
     height: 39px;
 }
@@ -249,7 +246,7 @@ input[type="number"][disabled] {
     animation: pulseselect 1s infinite alternate;
 }
 
-.select-prompt > select:hover, select:focus {
+.select-prompt > select:hover {
     background-color: #005f9e;
 }
 .select-prompt > button {
@@ -278,7 +275,7 @@ button {
     cursor: pointer;
 }
 
-button:hover, button:focus {
+button:hover {
     background-color: #005f9e;
 }
 
@@ -286,14 +283,14 @@ button[data-delete] {
     background-color: #c43700!important;
 }
 
-button[data-delete]:hover, button[data-delete]:focus {
+button[data-delete]:hover {
     background-color: #9e2d00!important;
 }
 button[data-override="yes"] {
     background-color: #be710b!important;
 }
 
-button[data-override="yes"]:hover, button[data-override="yes"]:focus {
+button[data-override="yes"]:hover {
     background-color: #9e5a00!important;
 }
 
@@ -389,7 +386,7 @@ footer[data-iscollapsed="yes"] > span {
     border-radius: 4px;
     background-color: #2c2c2c!important;
 }
-.expand-button:hover, .expand-button:focus {
+.expand-button:hover {
     background-color: #616161!important;
 }
 
@@ -434,7 +431,7 @@ footer[data-iscollapsed="yes"] > span {
     background-color: transparent!important;
     padding: 4px;
 }
-.attachment-container > div > button:hover, .attachment-container > div > button:focus > svg {
+.attachment-container > div > button:hover > svg {
     scale: 2;
     transform: translateX(-5px) translateY(+5px)
 }
