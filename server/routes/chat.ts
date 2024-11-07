@@ -36,8 +36,6 @@ export const chatRoutes = (app: Express) => {
         const systemContent = prompts.get(promptId) || '';
         const systemMessage = { role: 'system', content: systemContent } as AIMessage;
 
-        if(images.length) writeFileSync(process.cwd() + "/test.json", JSON.stringify({ images }));
-
         const useStream = stream === "true" ? true : stream === "false" ? false : defaults.stream;
         if (useStream) {
             res.setHeader('Content-Type', 'text/event-stream');
@@ -135,11 +133,6 @@ export const chatRoutes = (app: Express) => {
                             }))
                         ] : v.content,
                         role: v.role,
-                    }));
-                    writeFileSync(process.cwd() + "/test.json", JSON.stringify({ messages: (systemContent.length ? [systemMessage, ...historyMapped] : [...historyMapped]) as Groq.Chat.ChatCompletionMessageParam[],
-                        model: modelId,
-                        stream: useStream,
-                        temperature: temperature || defaults.temperature,
                     }));
                     const completion = await groq.chat.completions.create(
                         {

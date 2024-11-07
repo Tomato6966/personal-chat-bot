@@ -36,7 +36,7 @@ export const ChatEntry = ({ entry, index }: { entry: HistoryMsg, index: number }
         )
     }
     return (
-        <div key={index} className={`chat-entry ${entry.role}`} data-role={entry.role}>
+        <div key={index} className={`relative chat-entry ${entry.role}`} data-role={entry.role}>
             <MarkdownWithCopyButton entry={entry.content} />
         </div>
     );

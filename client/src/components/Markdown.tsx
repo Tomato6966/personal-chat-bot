@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -27,35 +27,50 @@ const CopyButton = ({ text }: { text: string }) => {
 };
 
 const MarkdownWithCopyButton = ({ entry }: { entry: string | null }) => {
+    const [copied, setCopied] = useState<"Copied" | "Copy" | "Failed to Copy">("Copy");
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     return (
-        <ReactMarkdown
+        <>
+            <CopyToClipboard text={entry || ""} onCopy={(_text, result: boolean) => {
+                if(timeoutRef.current) clearTimeout(timeoutRef.current);
+                timeoutRef.current = setTimeout(() => setCopied(result ? "Copied" : "Failed to Copy"), 3000);
+            }}>
+                <button
+                    className={`copytoclipboard ${copied ? 'copied' : ''} assitantcopy`}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                {copied}
+                </button>
+            </CopyToClipboard>
+            <ReactMarkdown
             components={{
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 code({ node, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '');
                     return match ? (
                         <div className="relative">
-                            <CopyButton text={String(children).replace(/\n$/, '')} />
-                            <SyntaxHighlighter
-                                // @ts-expect-error no overload matching the call
-                                style={oneDark}
-                                language={match[1]}
-                                PreTag="div"
-                                {...props}
-                            >
-                                {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                        </div>
-                    ) : (
-                        <code className={className} {...props}>
-                            {children}
-                        </code>
-                    );
-                },
-            }}
-        >
-            {entry}
-        </ReactMarkdown>
+                                <CopyButton text={String(children).replace(/\n$/, '')} />
+                                <SyntaxHighlighter
+                                    // @ts-expect-error no overload matching the call
+                                    style={oneDark}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    {...props}
+                                    >
+                                    {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                            </div>
+                        ) : (
+                            <code className={className} {...props}>
+                                {children}
+                            </code>
+                        );
+                    },
+                }}
+                >
+                {entry}
+            </ReactMarkdown>
+        </>
     );
 };
 

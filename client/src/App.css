@@ -66,6 +66,13 @@ body {
     padding: 4px;
     height: 39px;
 }
+.copytoclipboard.assitantcopy {
+    top: 8px;
+    right: unset!important;
+    left: 15px!important;
+    padding: 4px;
+    height: 39px;
+}
 
 h1 {
     color: #dcdcdc;
