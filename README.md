@@ -6,6 +6,15 @@ I made this project to create a simple chatbot interface, to interacft with the 
 This way i can have a localhost chatbot, for free / cheap / easy and fast llm access.
 That way i do not rely on chatgpt or claude for simple tasks anymore.
 
+### How it should be used
+
+- This app has **no auth** so only on localhost!
+- The chat-history, is configureable and limitable ( in the defaults.json ), and stored on the frontend so that...
+  - When you refresh the page, the chat history is cleared
+- *Mind: Models like llava don't properly support chathistory*
+- *If you use ollama, you can keep the chat-history decently big, but if you use some "paid" service, i'd recommend to keep it low..*
+
+
 ## Features
 
 - Pick the api (hosting) of your choice
