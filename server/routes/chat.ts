@@ -2,14 +2,15 @@ import { Express } from "express";
 
 import { AIMessage, APIS } from "../Types";
 import { cachedModels, prompts } from "../Utils/Cache";
-import { defaults, fetchModels, getGroq, ollama } from "../Utils/handlers";
+import { defaults, fetchModels, getGroq, ollama, openai } from "../Utils/handlers";
 
 import type Groq from "groq-sdk";
+import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 
 export const chatRoutes = (app: Express) => {
     // Send a chat message and get a response
     app.post('/api/chat', async (req, res) => {
-        const { images, modelId, promptId, chatHistory, temperature, stream, api = "groq" } = req.body as {
+        const { images, modelId, promptId, chatHistory, temperature, stream, api = APIS.Groq } = req.body as {
             promptId: string,
             chatHistory: { role: string, content: string, state: "loading" | "success" | "failed" }[],
             images: string[],
@@ -73,50 +74,49 @@ export const chatRoutes = (app: Express) => {
             switch (api) {
                 default:
                 case "ollama": {
-                    const lastUserRequest = history.map(v => v.role).lastIndexOf("user");
-                    const only1UserRequest = modelId.includes("llava") && lastUserRequest > -1;
-                    const historyMapped = history
-                        .filter((v, i) => !only1UserRequest || (only1UserRequest && (v.role !== "user" || i === lastUserRequest)))
-                        .map((v, i) => ({
-                            content: v.content,
-                            images: images?.length && (history.length - 1) === i ? images.map(img => {
-                                const cleanBase64 = img.replace(/^data:image\/(png|jpeg|jpg);base64,/, '').trim();
-                                try {
-                                    atob(cleanBase64)
-                                    return cleanBase64;
-                                } catch (error) {
-                                    console.error("Invalid base64 string:", error, cleanBase64);
-                                    return null;
+                        const lastUserRequest = history.map(v => v.role).lastIndexOf("user");
+                        const only1UserRequest = modelId.includes("llava") && lastUserRequest > -1;
+                        const historyMapped = history
+                            .filter((v, i) => !only1UserRequest || (only1UserRequest && (v.role !== "user" || i === lastUserRequest)))
+                            .map((v, i) => ({
+                                content: v.content,
+                                images: images?.length && (history.length - 1) === i ? images.map(img => {
+                                    const cleanBase64 = img.replace(/^data:image\/(png|jpeg|jpg);base64,/, '').trim();
+                                    try {
+                                        atob(cleanBase64)
+                                        return cleanBase64;
+                                    } catch (error) {
+                                        console.error("Invalid base64 string:", error, cleanBase64);
+                                        return null;
+                                    }
+                                }).filter(v => typeof v === "string") : [],
+                                role: v.role,
+                            }));
+                        const completion = await ollama.chat(
+                            {
+                                model: modelId,
+                                messages: systemContent.length ? [
+                                    systemMessage,
+                                    ...historyMapped
+                                ] : [
+                                    ...historyMapped,
+                                ],
+                                // @ts-expect-error boolean is not assignable to false
+                                stream: useStream,
+                                options: {
+                                    temperature: temperature || defaults.temperature,
                                 }
-                            }).filter(v => typeof v === "string") : [],
-                            role: v.role,
-                        }));
-                    const completion = await ollama.chat(
-                        {
-                            model: modelId,
-                            messages: systemContent.length ? [
-                                systemMessage,
-                                ...historyMapped
-                            ] : [
-                                ...historyMapped,
-                            ],
-                            // @ts-expect-error boolean is not assignable to false
-                            stream: useStream,
-                            options: {
-                                temperature: temperature || defaults.temperature,
                             }
-                        }
-                    );
-                    handleData(completion, (comp) => comp.message.content);
-                    return;
-                } break;
-
+                        );
+                        handleData(completion, (comp) => comp.message.content);
+                        return;
+                    } break;
                 // case "openai": break;
                 // case "huggingface": break;
                 // case "openrouter": break;
 
-                case "groq": {
-                    const groq = getGroq();
+                // since they are 1:1 the same syntax, i just alter the "class" by api name...
+                case "openai": case "groq": {
                     const only1UserRequest = modelId.includes("llava");
                     const lastUserRequest = history.reverse().findIndex(v => v.role === "user");
                     const historyMapped = history
@@ -135,16 +135,30 @@ export const chatRoutes = (app: Express) => {
                         ] : v.content,
                         role: v.role,
                     }));
-                    const completion = await groq.chat.completions.create(
-                        {
-                            messages: (systemContent.length ? [systemMessage, ...historyMapped] : [...historyMapped]) as Groq.Chat.ChatCompletionMessageParam[],
-                            model: modelId,
-                            stream: useStream,
-                            temperature: temperature || defaults.temperature,
-                        },
-                    );
 
-                    handleData(completion, (comp) => useStream ? comp.choices[0]?.delta?.content : comp.choices[0]?.message.content);
+                    if(api === "openai") {
+                        const completion = await openai.chat.completions.create(
+                            {
+                                messages: (systemContent.length ? [systemMessage, ...historyMapped] : [...historyMapped]) as ChatCompletionMessageParam[],
+                                model: modelId,
+                                stream: useStream,
+                                temperature: temperature || defaults.temperature,
+                            },
+                        );
+                        handleData(completion, (comp) => useStream ? comp.choices[0]?.delta?.content : comp.choices[0]?.message.content);
+                    } else {
+                        const completion = await getGroq().chat.completions.create(
+                            {
+                                messages: (systemContent.length ? [systemMessage, ...historyMapped] : [...historyMapped]) as Groq.Chat.ChatCompletionMessageParam[],
+                                model: modelId,
+                                stream: useStream,
+                                temperature: temperature || defaults.temperature,
+                            },
+                        );
+                        handleData(completion, (comp) => useStream ? comp.choices[0]?.delta?.content : comp.choices[0]?.message.content);
+                    }
+
+
                     return;
                 } break;
             }

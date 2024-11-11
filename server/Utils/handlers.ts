@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import Groq from "groq-sdk";
 import { Ollama } from "ollama";
+import { OpenAI } from "openai"
 import { join } from "path";
 
 import defaults_imported from "../../defaults.json";
@@ -8,7 +9,6 @@ import { APIS } from "../Types";
 import { cachedModels, prompts } from "./Cache";
 
 const APIKEYS = process.env.GROQ_API_KEY?.split(" ") || [];
-
 const groqs = new Map<string, number>(Array.from({ length: APIKEYS?.length }, (_, i) => ([APIKEYS[i], 0])));
 
 export const getGroq = () => {
@@ -19,6 +19,7 @@ export const getGroq = () => {
     return new Groq({ apiKey: leastUsedId });
 }
 
+export const openai = new OpenAI({ baseURL: process.env.OPENAI_BASE_URL && process.env.OPENAI_BASE_URL.length > 0 ? process.env.OPENAI_BASE_URL : undefined, apiKey: process.env.OPENAI_API_KEY })
 export const ollama = new Ollama();
 export const promptsFilePath = join(__dirname, '../../prompts.json');
 export const defaults = defaults_imported;
@@ -39,12 +40,11 @@ export const fetchModels = async (api:APIS) => {
     if(cachedModels.has(api)) {
         return cachedModels.get(api);
     }
-    const groq = getGroq();
     let models:string[] = [];
     switch(api) {
-        case "groq": models = (await groq.models.list()).data.map(model => model.id); break;
+        case "groq": models = (await getGroq().models.list()).data.map(model => model.id); break;
         case "ollama": models = (await ollama.list()).models.map(model => model.name); break;
-        // case "openai": break;
+        case "openai": models = (await openai.models.list()).data.map(model => model.id); break;
         // case "huggingface": break;
         // case "openrouter": break;
     };

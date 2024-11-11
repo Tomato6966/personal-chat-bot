@@ -1,2 +1,6 @@
 export type AIMessage = { role: string, content: string, images?: string[] };
-export type APIS = "ollama" | "groq";
+export enum APIS {
+    "Ollama" = "ollama",
+    "Groq" = "groq",
+    "OpenAI" = "openai",
+};

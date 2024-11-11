@@ -13,7 +13,7 @@ import { Streaming } from "./components/Selects/Streaming";
 import { Temperature } from "./components/Selects/Temperature";
 import { HistoryMsg } from "./Types";
 
-import type { APIS } from "../../server/Types";
+import { APIS } from "../../server/Types";
 const queryClient = new QueryClient()
 
 function App() {
@@ -168,7 +168,10 @@ function App() {
         };
         if (!textareaRef.current?.value) return;
 
-        if(textareaRef.current) textareaRef.current.style.height = '72px';
+        if(textareaRef.current) {
+            textareaRef.current.blur();
+            textareaRef.current.style.height = '72px';
+        }
         setLoading(true);
         const userMessage:HistoryMsg = { role: 'user', content: textareaRef.current.value, state: "loading" };
         const newHistory = [
@@ -222,7 +225,6 @@ function App() {
                         done = doneReading;
 
                         const chunkUnparsed = decoder.decode(value, { stream: true });
-
                         if (chunkUnparsed.includes("[DONE]")) {
                             handleTextareaChange(null);
                             setChatHistory((prev) => {
@@ -364,8 +366,7 @@ function App() {
                                         setAPI(e.target.value as APIS);
                                     }}
                                 >
-                                    <option value="groq">Groq</option>
-                                    <option value="ollama">Ollama</option>
+                                    {Object.entries(APIS).map(([name, value]) => <option key={value} value={value}>{name}</option>)}
                                 </select>
                             </div>
                             <div className="select-prompt">
@@ -409,7 +410,7 @@ function App() {
 
                 {/* output aka main area */}
                 <main className="outputs">
-                    <div id="chat-history" ref={chatHistoryRef} className={`chat-history ${isFocused ? "smaller" : ""}`}>
+                    <div id="chat-history" ref={chatHistoryRef} className={`${isFocused ? "smaller" : ""}`}>
                         {chatHistory.map((entry, index) => (
                             <ChatEntry key={index} entry={entry} index={index} />
                         ))}
@@ -418,8 +419,8 @@ function App() {
                     <div className="message-input">
                         <textarea
                             ref={textareaRef}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
+                            onFocus={() => {console.log("FOCUS"); setIsFocused(true)}}
+                            onBlur={(e) => { e.preventDefault(); e.stopPropagation(); setIsFocused(false); }}
                             id="user-message"
                             data-loading={loading ? "yes" : "no"}
                             onKeyDown={(e) => {

@@ -2,7 +2,6 @@ import colors from "colors";
 import dotenv from "dotenv";
 import express from "express";
 import path from "path";
-
 import { chatRoutes } from "./routes/chat";
 import { modelsRoutes } from "./routes/models";
 import { promptRoutes } from "./routes/prompts";
@@ -32,7 +31,7 @@ chatRoutes(app);
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, 'client/build', 'index.html')));
 
 app.get('*', (req, res) => {
-    res.status(404).send("Not found").end();
+    res.status(404).send("Not found");
     return;
 });
 
